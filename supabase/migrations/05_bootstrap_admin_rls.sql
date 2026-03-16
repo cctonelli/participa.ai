@@ -2,17 +2,21 @@
 CREATE OR REPLACE FUNCTION public.is_system_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
+  -- Se não houver UID, não é admin
+  IF auth.uid() IS NULL THEN
+    RETURN FALSE;
+  END IF;
+
   RETURN (
     EXISTS (
       SELECT 1 FROM public.permissoes_admin 
       WHERE usuario_id = auth.uid() AND role = 'system_admin' AND ativo = TRUE
     ) OR (
-      auth.jwt() ->> 'email' = 'bigdatagard2025@gmail.com' 
-      AND (auth.jwt() ->> 'email_verified')::boolean = true
+      auth.jwt() ->> 'email' = 'bigdatagard2025@gmail.com'
     )
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Atualizar Políticas para Municípios
 DROP POLICY IF EXISTS "System Admin gerencia municípios" ON public.municipios;
