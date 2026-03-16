@@ -9,11 +9,13 @@ import {
   Search,
   Globe,
   Landmark,
-  ShieldAlert
+  ShieldAlert,
+  Database
 } from 'lucide-react';
 import { CardParticipa, CardHeader, CardContent } from '@/src/components/ui/CardParticipa';
 import { motion } from 'motion/react';
 import { cn } from '@/src/lib/utils';
+import { EntityRegistration } from './EntityRegistration';
 
 interface Entity {
   id: string;
@@ -24,7 +26,7 @@ interface Entity {
 }
 
 export const AdminDashboard = () => {
-  const [activeView, setActiveView] = useState<'overview' | 'entities' | 'users'>('overview');
+  const [activeView, setActiveView] = useState<'overview' | 'entities' | 'users' | 'ibge'>('overview');
 
   const entities: Entity[] = [
     { id: '1', nome: 'Paraná', tipo: 'estado', estado_sigla: 'PR', subEntitiesCount: 399 },
@@ -112,20 +114,29 @@ export const AdminDashboard = () => {
         </div>
       </div>
 
-      <div className="flex gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit">
+      <div className="flex gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit overflow-x-auto max-w-full">
         <button 
           onClick={() => setActiveView('overview')}
           className={cn(
-            "px-6 py-2 rounded-xl text-sm font-bold transition-all",
+            "px-6 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap",
             activeView === 'overview' ? "bg-white dark:bg-zinc-800 shadow-sm" : "text-zinc-500 hover:text-zinc-700"
           )}
         >
           Visão Geral
         </button>
         <button 
+          onClick={() => setActiveView('ibge')}
+          className={cn(
+            "px-6 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap",
+            activeView === 'ibge' ? "bg-white dark:bg-zinc-800 shadow-sm" : "text-zinc-500 hover:text-zinc-700"
+          )}
+        >
+          Cadastro IBGE
+        </button>
+        <button 
           onClick={() => setActiveView('entities')}
           className={cn(
-            "px-6 py-2 rounded-xl text-sm font-bold transition-all",
+            "px-6 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap",
             activeView === 'entities' ? "bg-white dark:bg-zinc-800 shadow-sm" : "text-zinc-500 hover:text-zinc-700"
           )}
         >
@@ -134,7 +145,7 @@ export const AdminDashboard = () => {
         <button 
           onClick={() => setActiveView('users')}
           className={cn(
-            "px-6 py-2 rounded-xl text-sm font-bold transition-all",
+            "px-6 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap",
             activeView === 'users' ? "bg-white dark:bg-zinc-800 shadow-sm" : "text-zinc-500 hover:text-zinc-700"
           )}
         >
@@ -148,7 +159,8 @@ export const AdminDashboard = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2 }}
       >
-        {activeView === 'overview' ? renderOverview() : (
+        {activeView === 'overview' ? renderOverview() : 
+         activeView === 'ibge' ? <EntityRegistration /> : (
           <div className="flex flex-col items-center justify-center h-64 text-zinc-500">
             <Settings size={48} className="mb-4 opacity-20 animate-spin-slow" />
             <p className="font-medium">Configurações avançadas de {activeView}</p>
