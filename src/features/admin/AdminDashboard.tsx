@@ -16,6 +16,7 @@ import { CardParticipa, CardHeader, CardContent } from '@/src/components/ui/Card
 import { motion } from 'motion/react';
 import { cn } from '@/src/lib/utils';
 import { EntityRegistration } from './EntityRegistration';
+import { EntityLinking } from './EntityLinking';
 
 interface Entity {
   id: string;
@@ -26,7 +27,7 @@ interface Entity {
 }
 
 export const AdminDashboard = () => {
-  const [activeView, setActiveView] = useState<'overview' | 'entities' | 'users' | 'ibge'>('overview');
+  const [activeView, setActiveView] = useState<'overview' | 'entities' | 'users' | 'ibge' | 'linking'>('overview');
 
   const entities: Entity[] = [
     { id: '1', nome: 'Paraná', tipo: 'estado', estado_sigla: 'PR', subEntitiesCount: 399 },
@@ -134,6 +135,15 @@ export const AdminDashboard = () => {
           Cadastro IBGE
         </button>
         <button 
+          onClick={() => setActiveView('linking')}
+          className={cn(
+            "px-6 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap",
+            activeView === 'linking' ? "bg-white dark:bg-zinc-800 shadow-sm" : "text-zinc-500 hover:text-zinc-700"
+          )}
+        >
+          Vincular Entidades
+        </button>
+        <button 
           onClick={() => setActiveView('entities')}
           className={cn(
             "px-6 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap",
@@ -160,7 +170,8 @@ export const AdminDashboard = () => {
         transition={{ duration: 0.2 }}
       >
         {activeView === 'overview' ? renderOverview() : 
-         activeView === 'ibge' ? <EntityRegistration /> : (
+         activeView === 'ibge' ? <EntityRegistration /> : 
+         activeView === 'linking' ? <EntityLinking /> : (
           <div className="flex flex-col items-center justify-center h-64 text-zinc-500">
             <Settings size={48} className="mb-4 opacity-20 animate-spin-slow" />
             <p className="font-medium">Configurações avançadas de {activeView}</p>

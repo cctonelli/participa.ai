@@ -62,48 +62,27 @@ export const EntityRegistration = () => {
       addLog(`Encontrados ${data.length} registros para processar.`);
 
       for (const item of data) {
-        addLog(`Processando: ${item.nome_municipio} (${item.sigla_uf})`);
+        addLog(`Processando Município: ${item.nome_municipio} (${item.sigla_uf})`);
 
-        // 1. Garantir que o Estado existe
-        let { data: estado, error: estadoError } = await supabase
-          .from('entidades_governamentais')
-          .select('id')
-          .eq('tipo', 'estado')
-          .eq('estado_sigla', item.sigla_uf)
-          .maybeSingle();
-
-        if (!estado) {
-          addLog(`Criando estado: ${item.nome_uf}`);
-          const { data: newEstado, error: createEstadoError } = await supabase
-            .from('entidades_governamentais')
-            .insert({
-              tipo: 'estado',
-              nome: item.nome_uf,
-              estado_sigla: item.sigla_uf,
-              codigo_ibge: item.id_uf
-            })
-            .select()
-            .single();
-          
-          if (createEstadoError) throw createEstadoError;
-          estado = newEstado;
-        }
-
-        // 2. Criar/Atualizar a Cidade
-        const { error: cityError } = await supabase
-          .from('entidades_governamentais')
+        // Salvar na nova tabela de municípios
+        const { error: municError } = await supabase
+          .from('municipios')
           .upsert({
-            tipo: 'cidade',
-            nome: item.nome_municipio,
-            estado_sigla: item.sigla_uf,
-            codigo_ibge: item.id_munic_comp,
-            pai_id: estado.id,
-            regiao_imediata: item.nome_regiao_imed,
-            regiao_intermediaria: item.nome_regiao_interm
-          }, { onConflict: 'tipo,codigo_ibge' });
+            id_uf: parseInt(item.id_uf),
+            nome_uf: item.nome_uf,
+            sigla_uf: item.sigla_uf,
+            id_regiao_interm: parseInt(item.id_regiao_interm),
+            nome_regiao_interm: item.nome_regiao_interm,
+            id_regiao_imed: parseInt(item.id_regiao_imed),
+            nome_regiao_imed: item.nome_regiao_imed,
+            id_munic: item.id_munic,
+            id_munic_comp: item.id_munic_comp,
+            nome_municipio: item.nome_municipio,
+            ativo: item.ativo.toLowerCase() === 'ativo'
+          }, { onConflict: 'id_munic_comp' });
 
-        if (cityError) {
-          addLog(`Erro ao salvar ${item.nome_municipio}: ${cityError.message}`);
+        if (municError) {
+          addLog(`Erro ao salvar município ${item.nome_municipio}: ${municError.message}`);
         }
       }
 
