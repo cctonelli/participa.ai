@@ -28,11 +28,28 @@ O **PARTICIPA.AI** é uma plataforma de administração participativa que visa t
 ---
 
 ## 📂 Estrutura de Pastas (Feature-Based)
-- `src/app/`: Rotas e layouts principais.
-- `src/features/`: Slices de funcionalidades (auth, enquetes, denuncias).
-- `src/domain/`: Entidades e regras de negócio puras.
-- `src/components/`: Componentes de UI reutilizáveis (shadcn/ui style).
-- `src/lib/`: Configurações de serviços (supabase, gemini, utils).
+... (mantém o anterior)
+
+---
+
+## 🔐 Papéis e Hierarquia de Acesso (RBAC)
+
+O sistema utiliza uma combinação de **Nível de Cidadão** (progressivo) e **Papéis Administrativos** (hierárquicos).
+
+### Tabela de Papéis Administrativos
+| Role | Descrição | Escopo | Criar Sub-admins? |
+| :--- | :--- | :--- | :--- |
+| `system_admin` | Administrador Global | Todo o sistema | Sim (Todos) |
+| `estado_admin` | Governo Estadual | Um Estado específico | Sim (Estaduais/Municipais) |
+| `assembleia_admin` | Assembleia Legislativa | Um Estado (Legislativo) | Sim (Legislativo Est.) |
+| `prefeitura_admin` | Prefeitura Municipal | Uma Cidade (Executivo) | Sim (Secretarias) |
+| `camara_admin` | Câmara de Vereadores | Uma Cidade (Legislativo) | Sim (Assessores) |
+| `secretaria_admin` | Gestor de Secretaria | Uma Secretaria específica | Sim (Sub-setores) |
+
+### Fluxo de Bootstrap Inicial
+1. O **System Admin** cadastra Estados e suas Regiões (Imediatas/Intermediárias).
+2. O **System Admin** cria as entidades iniciais (Prefeitura/Câmara) de cada cidade.
+3. Os administradores de cada entidade podem então criar suas próprias sub-estruturas (Secretarias, Departamentos) e delegar acesso a sub-administradores.
 
 ---
 

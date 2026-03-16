@@ -11,12 +11,14 @@ import {
   X,
   Moon,
   Sun,
-  ShieldCheck
+  ShieldCheck,
+  ShieldAlert
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/src/lib/utils';
 import { Home } from '@/src/features/dashboard/Home';
 import { EnquetesList } from '@/src/features/enquetes/EnquetesList';
+import { AdminDashboard } from '@/src/features/admin/AdminDashboard';
 
 interface NavItemProps {
   icon: any;
@@ -24,15 +26,16 @@ interface NavItemProps {
   active?: boolean;
   onClick?: () => void;
   collapsed?: boolean;
+  variant?: 'default' | 'admin';
 }
 
-const NavItem = ({ icon: Icon, label, active, onClick, collapsed }: NavItemProps) => (
+const NavItem = ({ icon: Icon, label, active, onClick, collapsed, variant = 'default' }: NavItemProps) => (
   <button
     onClick={onClick}
     className={cn(
       "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group w-full",
       active 
-        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" 
+        ? (variant === 'admin' ? "bg-red-600 text-white shadow-lg shadow-red-600/20" : "bg-blue-600 text-white shadow-lg shadow-blue-600/20")
         : "text-zinc-400 hover:bg-white/5 hover:text-white"
     )}
   >
@@ -45,6 +48,7 @@ export const AppShell = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
+  const [userRole] = useState('system_admin'); // Mock role for development
 
   // Toggle dark mode class on body
   useEffect(() => {
@@ -63,10 +67,15 @@ export const AppShell = () => {
     { id: 'perfil', icon: User, label: 'Meu Perfil' },
   ];
 
+  const adminItems = [
+    { id: 'admin', icon: ShieldAlert, label: 'Administração' },
+  ];
+
   const renderContent = () => {
     switch (activeTab) {
       case 'home': return <Home />;
       case 'enquetes': return <EnquetesList />;
+      case 'admin': return <AdminDashboard />;
       default: return (
         <div className="flex flex-col items-center justify-center h-[60vh] text-zinc-500">
           <ShieldCheck size={48} className="mb-4 opacity-20" />
@@ -118,6 +127,24 @@ export const AppShell = () => {
               />
             </div>
           ))}
+
+          {userRole === 'system_admin' && (
+            <div className="pt-4 mt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-2">
+              {isSidebarOpen && <p className="px-4 text-[10px] font-bold uppercase text-zinc-400 tracking-widest mb-2">Sistema</p>}
+              {adminItems.map((item) => (
+                <div key={item.id}>
+                  <NavItem
+                    icon={item.icon}
+                    label={item.label}
+                    active={activeTab === item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    collapsed={!isSidebarOpen}
+                    variant="admin"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </nav>
 
         <div className="p-4 border-t border-zinc-200 dark:border-zinc-800">
