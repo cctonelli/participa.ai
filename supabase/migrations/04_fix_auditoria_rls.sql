@@ -6,12 +6,7 @@ ALTER TABLE public.auditoria ENABLE ROW LEVEL SECURITY;
 -- 1. System Admin pode ver todos os logs
 CREATE POLICY "System Admin vê toda auditoria" ON public.auditoria
   FOR SELECT TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.permissoes_admin 
-      WHERE usuario_id = auth.uid() AND role = 'system_admin'
-    )
-  );
+  USING (public.is_system_admin());
 
 -- 2. Usuários podem ver seus próprios logs de auditoria
 CREATE POLICY "Usuário vê própria auditoria" ON public.auditoria
