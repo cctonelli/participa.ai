@@ -45,44 +45,52 @@ export const EntityRegistration = () => {
     addLog('Iniciando processamento de dados IBGE...');
 
     try {
-      const lines = csvText.split('\n');
-      const headers = lines[0].split(';').map(h => h.trim().toLowerCase());
+      const lines = csvText.split('\n').filter(l => l.trim() !== '');
+      if (lines.length < 2) return;
+
+      const headers = lines[0].split(';').map(h => h.trim().toUpperCase());
       
-      const data: IBGEData[] = lines.slice(1)
-        .filter(line => line.trim() !== '')
-        .map(line => {
-          const values = line.split(';');
-          const obj: any = {};
-          headers.forEach((header, index) => {
-            obj[header.replace(/\s+/g, '_')] = values[index]?.trim();
-          });
-          return obj as IBGEData;
-        });
+      // Mapeamento robusto de colunas (ignora espaços extras e case)
+      const getVal = (row: string[], search: string) => {
+        const idx = headers.findIndex(h => h.replace(/\s+/g, '') === search.replace(/\s+/g, ''));
+        return row[idx]?.trim() || '';
+      };
 
-      addLog(`Encontrados ${data.length} registros para processar.`);
+      const allData = lines.slice(1).map(line => {
+        const values = line.split(';');
+        return {
+          id_uf: parseInt(getVal(values, 'ID_UF')),
+          nome_uf: getVal(values, 'NOME_UF'),
+          sigla_uf: getVal(values, 'SIGLA_UF'),
+          id_regiao_interm: parseInt(getVal(values, 'ID_REGIAO_INTERM')),
+          nome_regiao_interm: getVal(values, 'NOME_REGIAO_INTERM'),
+          id_regiao_imed: parseInt(getVal(values, 'ID_REGIAO_IMED')),
+          nome_regiao_imed: getVal(values, 'NOME_REGIAO_IMED'),
+          id_munic: getVal(values, 'ID_MUNIC'),
+          id_munic_comp: getVal(values, 'ID_MUNIC_COMP'),
+          nome_municipio: getVal(values, 'NOME_MUNICIPIO'),
+          ativo: getVal(values, 'ATIVO').toLowerCase() === 'ativo'
+        };
+      }).filter(item => item.id_munic_comp);
 
-      for (const item of data) {
-        addLog(`Processando Município: ${item.nome_municipio} (${item.sigla_uf})`);
+      addLog(`Encontrados ${allData.length} registros para processar.`);
 
-        // Salvar na nova tabela de municípios
+      // Processar em lotes de 100 para maior eficiência e estabilidade
+      const chunkSize = 100;
+      for (let i = 0; i < allData.length; i += chunkSize) {
+        const chunk = allData.slice(i, i + chunkSize);
+        const currentBatch = Math.floor(i / chunkSize) + 1;
+        const totalBatches = Math.ceil(allData.length / chunkSize);
+
+        addLog(`Enviando lote ${currentBatch}/${totalBatches} (${chunk.length} registros)...`);
+
         const { error: municError } = await supabase
           .from('municipios')
-          .upsert({
-            id_uf: parseInt(item.id_uf),
-            nome_uf: item.nome_uf,
-            sigla_uf: item.sigla_uf,
-            id_regiao_interm: parseInt(item.id_regiao_interm),
-            nome_regiao_interm: item.nome_regiao_interm,
-            id_regiao_imed: parseInt(item.id_regiao_imed),
-            nome_regiao_imed: item.nome_regiao_imed,
-            id_munic: item.id_munic,
-            id_munic_comp: item.id_munic_comp,
-            nome_municipio: item.nome_municipio,
-            ativo: item.ativo.toLowerCase() === 'ativo'
-          }, { onConflict: 'id_munic_comp' });
+          .upsert(chunk, { onConflict: 'id_munic_comp' });
 
         if (municError) {
-          addLog(`Erro ao salvar município ${item.nome_municipio}: ${municError.message}`);
+          addLog(`Erro no lote ${currentBatch}: ${municError.message}`);
+          throw municError;
         }
       }
 

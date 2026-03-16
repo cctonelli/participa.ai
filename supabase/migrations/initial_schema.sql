@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS public.votos_enquetes (
 
 -- Políticas RLS
 ALTER TABLE public.perfis ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.auditoria ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.enquetes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.votos_enquetes ENABLE ROW LEVEL SECURITY;
 
